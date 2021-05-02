@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <title>Pure CSS coin-up animation</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="Blank HTML file for you to create something.">
+<style>
+body {
+  height: 100vh;
+  background: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.container {
+  position: relative;
+  width: 600px;
+  height: 500px;
+  overflow: hidden;
+}
+
+canvas,
+.topLayer,
+.underLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.underLayer {
+  background: #960707 url("https://source.unsplash.com/600x500/?confetti,celebration") 50% 50% no-repeat;
+  filter: blur(3px);
+  -webkit-filter: blur(3px);
+  -moz-filter: blur(3px);
+}
+
+canvas {
+  width: 600px;
+  height: 500px;
+}
+
+.topLayer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 10em;
+  filter: drop-shadow(0px 0px 16px #ffffff);
+  -webkit-filter: drop-shadow(0px 0px 26px #ffffff);
+  -moz-filter: drop-shadow(0px 0px 16px #000000);
+}
+</style>
+
+  </head>
+  <body>
+    
+
+    
+<!-- Inspired by: https://codepen.io/natewiley/pen/Ciwyn -->
+
+
+<div class="container">
+    <div class="underLayer"></div>
+    <canvas id="canvas"></canvas>
+    <div class="topLayer">🎉 🎊</div>
+  </div>
+
+  <script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+let particles = [];
+const partCount = 100;
+const gravity = 0.05;
+let w = 600;
+let h = 500;
+
+const init = () => {
+  canvas.width = w;
+  canvas.height = h;
+  window.addEventListener("resize", onResizeHandler);
+  createjs.Ticker.addEventListener("tick", handleTick);
+  createjs.Ticker.framerate = 60;
+  populateParticles();
+};
+const random = (min, max) => {
+  return min + Math.random() * (max - min + 1);
+};
+
+const onResizeHandler = (ev) => {
+  w = canvas.width;
+  h = canvas.height;
+};
+
+const populateParticles = () => {
+  for (var i = 0; i < partCount; i++) {
+    particles.push({
+      x: w * 0.5,
+      y: h * 0.5,
+      rotation: random(0, 360),
+      diameter: Math.random() * 6 + 4,
+      speedX: random(-3, 3),
+      speedRotation: random(-1, 1),
+      particleSpeed: 1,
+      speedY: random(-10, -2),
+      color: Math.floor(Math.random() * 360),
+      tilt: 0,
+      tiltAngleIncrement: Math.random() * 0.1 + 0.04,
+      tiltAngle: 0,
+      diameter: Math.random() * 6 + 4,
+      lightness: 50
+    });
+  }
+};
+
+// Control the Canvas
+const update = () => {
+  // Gravity at work
+  let i = 0;
+  for (i = 0; i < particles.length; i++) {
+    let particle = particles[i];
+    particle.speedY += gravity;
+    particle.y += particle.speedY;
+    particle.x += particle.speedX;
+    if (particle.y > h) {
+      // reset particle
+      particle.speedY = random(-1, -2);
+
+      particle.lightness = 50;
+      particle.color = Math.floor(Math.random() * 360);
+      particle.x = Math.random() * w;
+      particle.y = Math.random() * h - h;
+      particle.diameter = Math.random() * 6 + 4;
+      particle.tilt = 0;
+      particle.tiltAngleIncrement = Math.random() * 0.1 + 0.04;
+      particle.tiltAngle = 0;
+    }
+
+    if (particle.x > w) {
+      // went offscreen
+      particle.x = w * 0.5;
+    }
+    particle.waveAngle += particle.tiltAngleIncrement;
+    particle.tiltAngle += particle.tiltAngleIncrement;
+    particle.tilt = Math.sin(particle.tiltAngle) * 12;
+  }
+};
+const draw = () => {
+  let i = 0;
+  for (i = 0; i < particles.length; i++) {
+    let particle = particles[i];
+
+    let x = particle.x + particle.tilt;
+
+    ctx.beginPath();
+    ctx.lineWidth = particle.diameter;
+    ctx.strokeStyle =
+      "hsl(" + particle.color + ", 100%, " + particle.lightness + "%)";
+    ctx.moveTo(x + particle.diameter * 0.5, particle.y);
+    ctx.lineTo(x, particle.y + particle.tilt + particle.diameter * 0.5);
+    ctx.stroke();
+  }
+};
+
+// The Ticker Function
+const handleTick = (ev) => {
+  if (!ev.paused) {
+    ctx.clearRect(0, 0, w, h);
+    update();
+    draw();
+  }
+};
+init();
+
+const restartConfetti = () => {
+  particles = [];
+  init();
+};
+
+document.body.addEventListener("click", (ev) => {
+  restartConfetti();
+});
+
+
+</script>
+    </body>
+</html>
